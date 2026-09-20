@@ -1,0 +1,141 @@
+[worldserver]
+
+########################################
+# mod-group-buffs
+#
+# "The more players, the stronger": every member of a group / raid gets bonuses that grow with
+# the number of counted members N in the group. For every effect:
+#
+#     bonus = min(PerMember * (N - 1), Max)         (all values in percent)
+#
+# Effects:
+#   Damage  damage done (melee, ranged and spell damage, all schools), via an aura
+#   Xp      experience gained (kills, quests, exploration), applied when XP is given
+#   Regen   out-of-combat health regeneration, spirit-based mana regeneration, energy regeneration
+#   Speed   run speed (also while mounted), via an aura
+#   Haste   melee + ranged attack speed (and optionally spell casting speed), via an aura
+#
+# Damage / Speed / Haste / Regen use three passive, hidden, server-side spells (ids 200210-200212)
+# that are created by this module's SQL (data/sql/db-world/updates/mod_group_buffs_*.sql, applied by
+# the DB updater on the next world start). They need NO client patch and show no buff icon.
+# Their percentages are whole numbers (fractional bonuses are rounded). Xp is exact.
+# Bonuses are re-evaluated every UpdateIntervalMs for each player, so joining / leaving / disbanding,
+# map changes, death and resurrection are picked up automatically and never stack.
+########################################
+
+#
+#    GroupBuffs.Enable
+#        Description: Master switch. Setting it to 0 (and reloading / restarting) removes all bonuses.
+#        Default:     1
+#
+
+GroupBuffs.Enable = 1
+
+#
+#    GroupBuffs.IncludeBots
+#        Description: Playerbots (your alt bots and random bots in your group) count as group members
+#                     and receive the bonuses. 0 = only real players count towards N.
+#        Default:     1
+#
+
+GroupBuffs.IncludeBots = 1
+
+#
+#    GroupBuffs.SameMapOnly
+#        Description: Only members on the same map (and the same instance) as the player are counted.
+#        Default:     1
+#
+
+GroupBuffs.SameMapOnly = 1
+
+#
+#    GroupBuffs.MaxDistance
+#        Description: Only members closer than this many yards are counted (also requires the same map).
+#                     0 = no distance limit.
+#        Default:     0
+#
+
+GroupBuffs.MaxDistance = 0
+
+#
+#    GroupBuffs.CountDeadMembers
+#        Description: Dead members (corpse or ghost) still count towards N. A dead player never
+#                     receives the bonuses itself.
+#        Default:     0
+#
+
+GroupBuffs.CountDeadMembers = 0
+
+#
+#    GroupBuffs.MaxGroupSize
+#        Description: Highest N that is taken into account (range 2 - 40). The per-effect caps below
+#                     usually bite first.
+#        Default:     40
+#
+
+GroupBuffs.MaxGroupSize = 40
+
+#
+#    GroupBuffs.DisableInPvPInstances
+#        Description: No bonuses inside battlegrounds and arenas (keeps PvP balanced).
+#        Default:     1
+#
+
+GroupBuffs.DisableInPvPInstances = 1
+
+#
+#    GroupBuffs.AnnounceOnChange
+#        Description: Tell real players in chat when their group bonus changes
+#                     ("[Group Bonus] 5 in group: +6% damage, +8% XP, ..."). Bots never get messages.
+#        Default:     1
+#
+
+GroupBuffs.AnnounceOnChange = 1
+
+#
+#    GroupBuffs.UpdateIntervalMs
+#        Description: How often (milliseconds, min 250) each player's bonus is re-evaluated.
+#        Default:     1000
+#
+
+GroupBuffs.UpdateIntervalMs = 1000
+
+########################################
+# Effects.  <Effect>.Enable / .PerMember (percent per extra member) / .Max (cap in percent)
+########################################
+
+# Damage done. Default: +1.5% per extra member, capped at +25%  (a full 5-man group: +6%)
+GroupBuffs.Damage.Enable = 1
+GroupBuffs.Damage.PerMember = 1.5
+GroupBuffs.Damage.Max = 25
+
+# Experience gained. Default: +2% per extra member, capped at +50%  (5-man: +8%)
+GroupBuffs.Xp.Enable = 1
+GroupBuffs.Xp.PerMember = 2
+GroupBuffs.Xp.Max = 50
+
+# Regeneration (health out of combat, mana, energy). Default: +3% per extra member, capped at +60%
+GroupBuffs.Regen.Enable = 1
+GroupBuffs.Regen.PerMember = 3
+GroupBuffs.Regen.Max = 60
+
+# Run speed. Default: +1% per extra member, capped at +20%  (5-man: +4%).
+# NOTE: Rate.MoveSpeed.Player (worldserver.conf) multiplies on top of this; keep the cap modest.
+GroupBuffs.Speed.Enable = 1
+GroupBuffs.Speed.PerMember = 1
+GroupBuffs.Speed.Max = 20
+
+#    GroupBuffs.Speed.Mounted
+#        Description: The run speed bonus also applies while mounted (ground mounts).
+#        Default:     1
+GroupBuffs.Speed.Mounted = 1
+
+# Attack speed (melee + ranged haste). Default: +1% per extra member, capped at +25%  (5-man: +4%)
+GroupBuffs.Haste.Enable = 1
+GroupBuffs.Haste.PerMember = 1
+GroupBuffs.Haste.Max = 25
+
+#    GroupBuffs.Haste.IncludeSpells
+#        Description: The haste bonus also speeds up spell casting (shorter cast times).
+#        Default:     1
+GroupBuffs.Haste.IncludeSpells = 1
