@@ -19,7 +19,7 @@
  *    disband, map change, death and resurrection are all handled without any bookkeeping and bonuses can
  *    never stack on repeated recalculation.
  *  - Per-player state (interval timer, announce state) lives in Player::CustomData.
- *  - Bots are ordinary Players; a bot is recognised through its session (WorldSession::IsBot()).
+ *  - Bots are ordinary Players; a bot is recognised through the playerbots module (when present).
  */
 
 #include "Chat.h"
@@ -36,6 +36,9 @@
 #include "StringFormat.h"
 #include "Timer.h"
 #include "WorldSession.h"
+#ifdef MOD_PLAYERBOTS
+#include "PlayerbotMgr.h"
+#endif
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -157,8 +160,12 @@ namespace
 
     bool IsBotPlayer(Player* player)
     {
-        WorldSession* session = player->GetSession();
-        return session && session->IsBot();
+#ifdef MOD_PLAYERBOTS
+        return player && sPlayerbotsMgr.GetPlayerbotAI(player) != nullptr;
+#else
+        (void)player;
+        return false;
+#endif
     }
 
     // Does `member` (another member of player's group) count towards player's group size?
@@ -320,7 +327,7 @@ namespace
         if (!sCfg.announce || bonuses.size == data->lastSize || !player->IsAlive())
             return;
 
-        // GetSession() can be null while a player is being torn down; IsBotPlayer() is false for a null session.
+        // GetSession() can be null while a player is being torn down; IsBotPlayer() is safe regardless.
         if (!player->GetSession() || IsBotPlayer(player))
             return;
 
